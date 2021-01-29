@@ -1,0 +1,50 @@
+service: ts-graphql-prisma-mysql
+
+plugins:
+  - serverless-webpack # Enable typescript transpilation through webpack and deployment with serverless
+  - serverless-plugin-git-variables
+  - serverless-offline
+
+custom:
+  stage: ${opt:stage, self:provider.stage}
+  region: ${opt:region, self:provider.region}
+  resourcePrefix: ${self:service}-${self:custom.stage}
+  env: ${opt:env, self:custom.stage}
+  account: ${opt:account, self:provider.account}
+  functionName: ${self:custom.env}-ts-graphql-prisma-mysql # This is the function name appears in the AWS lambda console.
+  description: Lamda Service for Profiles
+  webpack:
+    includeModules: true
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  region: ${file(config/account.yml):REGION} # from custom config
+  stage: test
+  account: ${file(config/account.yml):ACCOUNT_ID} # from custom config
+  memorySize: 1024
+  timeout: 30
+  iamRoleStatements: ${file(config/permissions.yml)}
+  deploymentBucket:
+    name: ${self:custom.env}-${file(config/account.yml):DEPLOYMENT_BUCKET_BASE} # from custom config
+    serverSideEncryption: AES256
+  environment: ${file(config/env.yml)}
+
+functions:
+  profilesLambda:
+    handler: src/handler.graphqlHandler # name of the handler function in src/handler.js
+    name: ${self:custom.functionName}
+    events:
+      - http:
+          path: graphql/profile
+          method: post
+          cors:
+            origin: '*'
+      - http:
+          path: graphql
+          method: get
+          cors:
+            origin: '*'
+# resources:
+#   Resources: ${file(config/resources.yml)}
+

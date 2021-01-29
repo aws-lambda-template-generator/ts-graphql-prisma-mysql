@@ -1,0 +1,15 @@
+version: '3.8'
+services:
+  db:
+    container_name: profiles-lambda-mysql
+    image: mysql:8.0.23 # Version to be updated to match Aurora
+    environment:
+      # Optional to create a new user and password
+      # Granted superuser permission by default
+      MYSQL_USER: test
+      MYSQL_PASSWORD: Password123
+      # root password is required
+      MYSQL_ROOT_PASSWORD: Password123
+      MYSQL_DATABASE: profiles
+    ports:
+      - 6008:3306
